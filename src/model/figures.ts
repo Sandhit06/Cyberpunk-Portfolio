@@ -21,8 +21,9 @@ function rose(b:ModelBuilder,at:V3,scale=.04){
   for(let i=0;i<5;i++){const a=i*Math.PI*.4;b.torus([at[0]+Math.cos(a)*scale*.35,at[1]+Math.sin(a)*scale*.35,at[2]],scale*.55,.0025,'ink');}
   b.pipe([[at[0],at[1]-scale*.4,at[2]],[at[0]-.01,at[1]-scale*1.4,at[2]],[at[0]+.015,at[1]-scale*2,at[2]]],.0025,'ink');
 }
-function head(b:ModelBuilder,female:boolean){
+function head(b:ModelBuilder,female:boolean,variant:number){
   const skin=female?'skinWarm':'skinTan';
+  const accent:MaterialName=variant===3?'teal':'hairRed';
   loft(b,[[0,.025,.028],[.018,.067,.074],[.055,.104,.096],[.115,.126,.106],[.19,.129,.109],[.26,.117,.096],[.302,.08,.075],[.32,.015,.014]],skin,32);
   // Cheekbones, tapered nose, chin, lips, inset eyes, brows and ears.
   for(const side of [-1,1]){
@@ -31,6 +32,10 @@ function head(b:ModelBuilder,female:boolean){
     b.sphere([side*.053,.2,.107],.029,'white',[1,.38,.2]);
     b.sphere([side*.053,.2,.114],.012,'iris',[.8,.95,.23]);
     b.sphere([side*.053,.2,.117],.005,'dark',[.7,1,.3]);
+    b.sphere([side*.049,.205,.119],.003,'white');
+    b.pipe([[side*.025,.203,.111],[side*.05,.213,.113],[side*.08,.202,.104]],.0045,female?'ink':skin);
+    b.pipe([[side*.025,.195,.111],[side*.052,.188,.112],[side*.08,.198,.104]],.003,skin);
+    b.sphere([side*.017,.135,.14],.006,'ink',[1,.5,.4]);
     b.pipe([[side*.023,.233,.108],[side*.055,.242,.105],[side*.09,.231,.09]],.007,'hair');
     b.sphere([side*.13,.151,-.005],.04,skin,[.42,1,.55]);
     b.sphere([side*.146,.152,.005],.022,'lips',[.15,1,.55]);
@@ -45,9 +50,16 @@ function head(b:ModelBuilder,female:boolean){
   if(female){
     // Side-shave and individually swept, volumetric locks, with longer asymmetrical fringe.
     const cap=new T.SphereGeometry(1,28,18,0,Math.PI*2,0,Math.PI*.49);cap.scale(.134,.14,.115);b.add(cap,'hair',[0,.2,-.018]);
-    for(let i=0;i<17;i++) {const x=-.11+i*.011; b.pipe([[x*.65,.302,-.043],[x-.026,.321,.045],[x-.067,.246,.098],[x-.079,.105,.101],[x-.082,-.06,.06]],.009+i%3*.002,i%5===0?'hairRed':'hair');}
+    for(let i=0;i<17;i++) {const x=-.11+i*.011; b.pipe([[x*.65,.302,-.043],[x-.026,.321,.045],[x-.067,.246,.098],[x-.079,.105,.101],[x-.082,-.06,.06]],.009+i%3*.002,i%4===0?accent:'hair');}
     for(let i=0;i<9;i++)b.pipe([[.098,.269,-.058+i*.009],[.126,.226,-.065+i*.009],[.131,.17,-.059+i*.009]],.0028,'hair');
   } else {
+    // Fitted hair cap and sideburns make the swept strands read as one hairstyle.
+    const cap=new T.SphereGeometry(1,32,20,0,Math.PI*2,0,Math.PI*.48);cap.scale(.13,.11,.113);b.add(cap,'hair',[0,.22,-.018]);
+    for(const side of [-1,1]) {
+      b.sphere([side*.105,.076,.054],.038,'hair',[.55,1.5,.7]);
+      b.pipe([[side*.105,.07,.07],[side*.074,.027,.085],[0,.018,.083]],.011,'hair');
+      b.pipe([[side*.01,.116,.115],[side*.035,.113,.109],[side*.055,.107,.1]],.005,'hair');
+    }
     for(let i=0;i<18;i++){const x=-.107+i*.012;b.pipe([[x,.255,.045],[x,.327,.015],[x*.92,.3,-.087]],.013,'hair');}
     for(let i=0;i<12;i++)b.pipe([[-.105+i*.018,.059,.065],[-.095+i*.017,.033,.07],[-.08+i*.014,.02,.06]],.0028,'hair');
     b.pipe([[-.1,.159,.081],[-.078,.129,.098],[-.075,.105,.097]],.003,'lips');
@@ -67,6 +79,17 @@ export function createFigure(m:Materials,female:boolean,variant=0):Figure {
     lower.box([ankle[0],.085,ankle[2]+.065],[.135,.12,.26],'leather',[0,side*.09,0],.045);
     lower.box([ankle[0],.024,ankle[2]+.075],[.14,.037,.275],'rubber',[0,side*.09,0],.016);
     lower.box([ankle[0],.14,ankle[2]+.073],[.089,.018,.045],'chrome');
+    for(let i=0;i<5;i++) {
+      const y=.12+i*.028,z=ankle[2]+.095-i*.008;
+      lower.beam([ankle[0]-.033,y,z],[ankle[0]+.033,y+.017,z],.004,'cream');
+      lower.beam([ankle[0]+.033,y,z],[ankle[0]-.033,y+.017,z],.004,'cream');
+    }
+    lower.sphere([ankle[0],.088,ankle[2]+.16],.067,'carbon',[1,.52,.85]);
+    if(female&&variant===3){
+      limb(lower,hip,knee,.095,.072,'carbon');
+      lower.sphere([knee[0],knee[1],knee[2]+.055],.077,'chrome',[.87,1.2,.35]);
+      for(const y of [.7,.82])lower.box([hip[0],y,.082],[.16,.023,.03],'leather');
+    }
   }
   root.add(lower.finish());
   const body=new ModelBuilder(m);
@@ -95,13 +118,26 @@ export function createFigure(m:Materials,female:boolean,variant=0):Figure {
     for(let i=0;i<7;i++)body.torus([.16+i*.008,1.04-i*.013,.149],.012,.003,'chrome');
     body.sign('SAMURAI',[0,1.28,-.156],[.28,.22],'#ce6761',{border:false,background:'#392c27'});
   }
+  // Tailored bolero and a second netrunner variant, with layered plates and lit seams.
+  if(female){
+    for(const side of [-1,1]){
+      body.sphere([side*.177,1.475,-.003],.077,variant===3?'chrome':'jacket',[1,.75,1.15]);
+      body.profile([[side*.08,1.24],[side*.095,1.44],[side*.15,1.52],[side*.19,1.44],[side*.14,1.27]],.03,[0,0,.108],variant===3?'carbon':'jacket',.008);
+      body.pipe([[side*.11,1.29,.14],[side*.125,1.43,.13],[side*.11,1.5,.08]],.006,'chrome');
+      body.pipe([[side*.09,1.5,-.035],[side*.095,1.56,-.06],[side*.04,1.58,-.065]],.008,variant===3?'cyan':'violet');
+    }
+    if(variant===3)for(let i=0;i<3;i++)body.sphere([0,1.16+i*.075,.09],.1,'carbon',[1.3,.4,.42]);
+  } else {
+    for(const side of [-1,1])for(let i=0;i<3;i++)body.pipe([[side*.14,1.02+i*.035,.115],[side*.19,1.03+i*.035,.10],[side*.2,1.07+i*.035,.065]],.007,'leather');
+    body.box([-.17,1.38,.16],[.055,.075,.018],'red');
+  }
   // Relaxed left arm, bent at the elbow, with shoulder and wrist anatomy.
   const shoulder:V3=[female?.19:.257,1.46,0],elbow:V3=[female?.26:.32,1.22,.013],wrist:V3=[female?.173:.23,1.02,.12];
   limb(body,shoulder,elbow,female?.057:.085,.047,female?skin:'jacket');limb(body,elbow,wrist,.049,.03,female?skin:'jacket');hand(body,[wrist[0],wrist[1]-.038,wrist[2]+.014],skin);
   body.cylinder([wrist[0],wrist[1]+.018,wrist[2]],.036,.036,.044,'steel');
   body.box([wrist[0],wrist[1]+.016,wrist[2]+.036],[.039,.029,.009],'cyan');
   torso.add(body.finish());root.add(torso);
-  const hb=new ModelBuilder(m);head(hb,female);headGroup.add(hb.finish());headGroup.position.set(0,1.6,0);headGroup.rotation.y=female?-.14:.08;torso.add(headGroup);
+  const hb=new ModelBuilder(m);head(hb,female,variant);headGroup.add(hb.finish());headGroup.position.set(0,1.6,0);headGroup.rotation.y=female?-.14:.08;torso.add(headGroup);
   const ab=new ModelBuilder(m);arm.position.set(0,1.46,0);
   if(female){limb(ab,[-.19,0,0],[-.245,-.24,.02],.057,.044,skin);limb(ab,[-.245,-.24,.02],[-.245,-.46,.075],.047,.028,skin);hand(ab,[-.246,-.493,.077],skin);rose(ab,[-.211,-.065,.05],.027);}
   else {limb(ab,[-.25,0,0],[-.32,-.21,.1],.085,.065,'jacket');limb(ab,[-.32,-.21,.1],[-.09,.205,.165],.06,.032,'jacket');hand(ab,[-.073,.227,.183],skin,true);}

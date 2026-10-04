@@ -4,7 +4,7 @@ import * as T from 'three';
 import { createFigure, type Figure } from './model/figures';
 import { disposeModel, makeMaterials, type V3 } from './model/kit';
 
-export type Inspection = { at: V3; distance: number } | null;
+export type Inspection = { at: V3; distance: number; direction?: V3; id?: string } | null;
 const placements: {at:V3; angle:number; female:boolean; scale:number}[] = [
   {at:[-5.05,.14,3.68],angle:.35,female:false,scale:1.09},
   {at:[3.01,.14,3.49],angle:.3,female:true,scale:1.07},
@@ -37,8 +37,8 @@ export default function Cast({started,reduced,onInspect}:{started:boolean;reduce
     }
   });
   return <>
-    {figures.map((figure,i)=>{const p=placements[i];return <group key={i} position={p.at} rotation={[0,p.angle,0]} scale={p.scale} onDoubleClick={event=>{event.stopPropagation();onInspect({at:[p.at[0],p.at[1]+1.12,p.at[2]],distance:3.9});}}><primitive object={figure.root} dispose={null}/></group>;})}
-    <mesh position={[-1.4,.95,5.3]} rotation={[0,-.17,0]} onDoubleClick={event=>{event.stopPropagation();onInspect({at:[-1.4,.82,5.3],distance:4.2});}}><boxGeometry args={[3.4,1.55,.95]}/><meshBasicMaterial transparent opacity={0} depthWrite={false}/></mesh>
+    {figures.map((figure,i)=>{const p=placements[i];return <group key={i} position={p.at} rotation={[0,p.angle,0]} scale={p.scale} onClick={event=>{if(event.delta>4)return;event.stopPropagation();onInspect({at:[p.at[0],p.at[1]+1.12,p.at[2]],distance:3.9});}}><primitive object={figure.root} dispose={null}/></group>;})}
+    <mesh position={[-1.4,.95,5.3]} rotation={[0,-.17,0]} onClick={event=>{if(event.delta>4)return;event.stopPropagation();onInspect({at:[-1.4,.82,5.3],distance:4.2});}}><boxGeometry args={[3.4,1.55,.95]}/><meshBasicMaterial transparent opacity={0} depthWrite={false}/></mesh>
     <group ref={smoke}>{smokeMap&&Array.from({length:14},(_,i)=><sprite key={i}><spriteMaterial map={smokeMap} color="#b6c2cd" transparent opacity={0} depthWrite={false}/></sprite>)}</group>
   </>;
 }

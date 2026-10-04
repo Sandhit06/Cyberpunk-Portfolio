@@ -84,22 +84,26 @@ export function props(b: ModelBuilder) {
   for(const y of [12.18,12.6,13.12,13.54]) b.torus([-3.86,y,-1.53],.75,.03,'rust',[Math.PI/2,0,0]);
   for(const x of [-4.4,-3.32]) for(const z of [-2.05,-1.0]) b.beam([x,11.85,z],[x,12.12,z],.045,'steel');
   b.pipe([[-3.2,12.5,-1.5],[-2.85,12.5,-1.5],[-2.8,10.25,-1.5],[-1.3,10.25,-1.5]],.064,'rust');
-  for(const x of [-1.35,.05]) b.with([x,10.47,-1.5],[-.26,0,0],()=>{
-    b.box([0,0,0],[1.24,.06,1.95],'steel');
-    b.box([0,.04,0],[1.12,.018,1.83],'glass');
-    for(let i=0;i<5;i++) b.box([0,.055,-.9+i*.45],[1.1,.01,.012],'coldWindow');
-    for(let i=0;i<4;i++) b.box([-.54+i*.36,.055,0],[.012,.01,1.8],'coldWindow');
-    // Four visible legs, feet, and cross braces keep the panels grounded like Jesse's rig.
-    for(const sx of [-.45,.45]){
-      b.beam([sx,-.04,-.67],[sx,-1.05,-.67],.055,'steel');
-      b.beam([sx,-.04,.67],[sx,-1.05,.67],.055,'steel');
-      b.cylinder([sx,-1.07,-.67],.12,.16,.08,'cream',[0,0,0],18);
-      b.cylinder([sx,-1.07,.67],.12,.16,.08,'cream',[0,0,0],18);
+  // Feet sit on the roof slab (top = 10.305); only the panel surface is tilted.
+  for(const x of [-1.65,-.4]) {
+    for(const sx of [-.4,.4]) for(const dz of [-.67,.67]) {
+      const top=11.55-Math.sin(.26)*dz;
+      b.cylinder([x+sx,10.355,-1.5+dz],.11,.16,.1,'steel');
+      b.beam([x+sx,10.405,-1.5+dz],[x+sx,top,-1.5+dz],.048,'chrome');
+      b.box([x+sx,top,-1.5+dz],[.16,.09,.18],'steel');
     }
-    b.beam([-.48,-.54,-.67],[.48,-.54,-.67],.035,'chrome');
-    b.beam([-.48,-.54,.67],[.48,-.54,.67],.035,'chrome');
-    b.pipe([[-.43,-.12,.68],[-.15,-.3,.83],[.35,-.38,.7]],.018,'teal',false);
-  });
+    for(const dz of [-.67,.67]) {
+      b.beam([x-.4,10.55,-1.5+dz],[x+.4,11.28,-1.5+dz],.025,'steel');
+      b.beam([x+.4,10.55,-1.5+dz],[x-.4,11.28,-1.5+dz],.025,'steel');
+    }
+    b.with([x,11.55,-1.5],[-.26,0,0],()=>{
+      b.box([0,0,0],[1.24,.06,1.95],'steel');
+      b.box([0,.04,0],[1.12,.018,1.83],'glass');
+      for(let i=0;i<5;i++) b.box([0,.055,-.9+i*.45],[1.1,.01,.012],'coldWindow');
+      for(let i=0;i<4;i++) b.box([-.54+i*.36,.055,0],[.012,.01,1.8],'coldWindow');
+    });
+    b.pipe([[x,11.5,-1.5],[x+.45,11.3,-1.5],[x+.45,10.4,-1.5],[0,10.47,-2.6]],.018,'dark',false);
+  }
   b.box([4.88,5.29,-1.47],[1.73,.96,1.58],'steel',[0,0,0],.05);
   for(const x of [4.4,5.35]) { b.cylinder([x,5.79,-1.45],.36,.36,.07,'dark',[0,0,0],24); for(let r=0;r<5;r++) b.torus([x,5.84,-1.45],.06+r*.065,.009,'steel',[Math.PI/2,0,0]); }
   aircon(b,[3.0,5.27,-1.7]);
@@ -123,9 +127,17 @@ export function props(b: ModelBuilder) {
   bottle(b,[3.87,5.61,.4]); bowl(b,[4.19,5.61,.36]);
   // Utility poles and hanging cables form arcs around the building.
   for(const at of [[-7.12,0,2.8],[7.62,0,-3.8]] as V3[]) { b.cylinder([at[0],3.33,at[2]],.066,.1,6.6,'steel'); b.box([at[0],6.24,at[2]],[1.6,.08,.12],'steel'); for(const dx of [-.58,0,.58]) b.cylinder([at[0]+dx,6.4,at[2]],.06,.06,.2,'cream'); b.box([at[0],3,at[2]],[.24,.52,.2],'rust'); }
-  for(let i=0;i<3;i++) b.pipe([[-7.7+i*.56,6.48,2.8],[-5.4,5.5,3.7],[-1.4,5.13,4.35],[2.8,5.5,3.9],[5.7,6.4,2.9]],.014,'dark');
+  for(let i=0;i<3;i++) b.pipe([[-7.7+i*.56,6.48,2.8],[-5.4,5.5,3.7],[-1.4,5.13,4.35],[2.8,5.5,3.9],[7.04+i*.56,6.48,-3.8]],.014,'dark');
   b.pipe([[-7.1,6.5,2.8],[-6.4,7.8,-1],[-4.7,9.2,-3.3],[-1,8.7,-4],[3.7,6.1,-4.4],[7.6,6.5,-3.8]],.025,'dark');
   b.pipe([[.1,10.4,0],[2.2,8.9,-.6],[4.5,8.7,-1.2],[5.8,8.1,-2.7]],.018,'dark');
+  // Terminate the service runs in junction boxes and a continuous rear riser.
+  b.box([0,10.47,-2.6],[.3,.32,.2],'steel');
+  b.pipe([[0,10.47,-2.6],[0,10.47,-3.15],[0,1.1,-3.15],[2.15,1.1,-3.15],[2.15,1.8,-3.02]],.035,'dark',false);
+  for(const x of [-5.2,0]) {
+    b.pipe([[x,4.3,1.05],[x,4.15,1.05],[x,4.15,1.48],[x,3.6,1.48]],.058,'rust',false);
+    b.box([x,3.6,1.48],[.25,.32,.17],'steel');
+  }
+  for(const y of [5,7.5,10]) b.box([0,y,-3.15],[.15,.06,.13],'steel');
   // Street lamp with cantilever and a warm pool of light supplied by the scene.
   b.cylinder([-7.15,3.2,3.6],.07,.14,6.25,'steel'); b.pipe([[-7.15,6.2,3.6],[-7.12,6.62,3.6],[-6.6,6.71,3.6],[-5.98,6.71,3.6]],.065,'steel');
   b.box([-5.94,6.64,3.6],[.72,.1,.3],'steel'); b.box([-5.94,6.57,3.6],[.56,.025,.23],'amber');

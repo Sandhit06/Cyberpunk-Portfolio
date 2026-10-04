@@ -9,10 +9,11 @@ import { architecture } from './model/architecture';
 import { props, streets } from './model/props';
 import SceneDetails from './SceneDetails';
 import BillboardMedia from './BillboardMedia';
+import DistrictInteractions from './DistrictInteractions';
 import Cast, {type Inspection} from './Cast';
 
 type SceneProps = { started: boolean; reduced: boolean; onProgress: (value: number) => void; onReady: () => void; onError: () => void };
-const target = new T.Vector3(0, 5.3, 0);
+const target = new T.Vector3(0, 3.5, 0);
 const frame = () => new Promise<void>(resolve => requestAnimationFrame(() => resolve()));
 
 function District({ onProgress, onError }: Pick<SceneProps, 'onProgress' | 'onError'>) {
@@ -50,11 +51,11 @@ function Camera({ started, reduced, inspection, onInspect }: Pick<SceneProps,'st
   const elapsed = useRef(0); const [arrived, setArrived] = useState(false);
   const travel=useRef<{from:T.Vector3;to:T.Vector3;lookFrom:T.Vector3;lookTo:T.Vector3;t:number}|null>(null);
   const portrait = size.width / size.height < .85;
-  const final = useMemo(() => new T.Vector3(portrait ? 35 : 21, portrait ? 20 : 12.8, portrait ? 47 : 27), [portrait]);
-  const start = useMemo(() => new T.Vector3(portrait ? 44 : 29, 25, portrait ? 58 : 40), [portrait]);
+  const final = useMemo(() => new T.Vector3(portrait ? -35 : -23, portrait ? 15 : 10, portrait ? 47 : 29), [portrait]);
+  const start = useMemo(() => new T.Vector3(portrait ? -44 : -31, 17, portrait ? 58 : 40), [portrait]);
   useEffect(() => { if (!started) { camera.position.copy(start); camera.lookAt(target); } }, [camera, start, started]);
   useEffect(() => { if (arrived) { camera.position.copy(final); controls.current?.target.copy(target); controls.current?.update(); } }, [portrait]); // Reframe only when orientation changes.
-  useEffect(()=>{if(!arrived||!controls.current)return;const lookTo=inspection?new T.Vector3(...inspection.at):target.clone();const to=inspection?lookTo.clone().add(new T.Vector3(.5,.2,1).normalize().multiplyScalar(inspection.distance)):final.clone();travel.current={from:camera.position.clone(),to,lookFrom:controls.current.target.clone(),lookTo,t:0};},[inspection]);
+  useEffect(()=>{if(!arrived||!controls.current)return;const lookTo=inspection?new T.Vector3(...inspection.at):target.clone();const to=inspection?lookTo.clone().add(new T.Vector3(...(inspection.direction ?? [.5,.2,1] as [number,number,number])).normalize().multiplyScalar(inspection.distance)):final.clone();travel.current={from:camera.position.clone(),to,lookFrom:controls.current.target.clone(),lookTo,t:0};},[inspection]);
   useEffect(() => {
     gl.domElement.tabIndex = 0; gl.domElement.setAttribute('aria-label','Explore the 3D district. Arrow keys orbit. Plus and minus zoom. R resets.');
     const keyboard = (event: KeyboardEvent) => {
@@ -73,7 +74,7 @@ function Camera({ started, reduced, inspection, onInspect }: Pick<SceneProps,'st
   }, [started, arrived, camera, final, gl, inspection,onInspect]);
   useFrame((_,delta)=>{const move=travel.current;if(!move||!controls.current)return;move.t+=Math.min(delta,.1);const t=reduced?1:Math.min(1,move.t/1.2),ease=t*t*(3-2*t);camera.position.lerpVectors(move.from,move.to,ease);controls.current.target.lerpVectors(move.lookFrom,move.lookTo,ease);controls.current.update();if(t===1)travel.current=null;});
   useFrame((_, delta) => { if(!started || arrived) return; elapsed.current += Math.min(delta,.1); const t = reduced ? 1 : Math.min(1,elapsed.current/4); const e = t*t*(3-2*t); camera.position.lerpVectors(start,final,e); camera.lookAt(target); if(t === 1) { setArrived(true); gl.domElement.focus({preventScroll:true}); } });
-  return <OrbitControls ref={controls} target={[0,5.3,0]} enabled={started && arrived} enablePan={false} enableDamping={!reduced} dampingFactor={.065} minDistance={inspection?1.5:10} maxDistance={90} minPolarAngle={.12} maxPolarAngle={Math.PI/2-.025} rotateSpeed={.62} zoomSpeed={.75} makeDefault/>;
+  return <OrbitControls ref={controls} target={[0,3.5,0]} enabled={started && arrived} enablePan={true} screenSpacePanning={true} panSpeed={.8} enableDamping={!reduced} dampingFactor={.09} minDistance={inspection?1.5:10} maxDistance={90} minPolarAngle={.12} maxPolarAngle={Math.PI/2-.025} rotateSpeed={1.1} zoomSpeed={1.25} onStart={()=>{travel.current=null;}} makeDefault/>;
 }
 
 function Hologram({ reduced }: { reduced: boolean }) {
@@ -120,6 +121,7 @@ function World(p: SceneProps) {
     <District onProgress={p.onProgress} onError={p.onError}/>
     <SceneDetails reduced={p.reduced}/>
     <BillboardMedia started={p.started} reduced={p.reduced}/>
+    <DistrictInteractions started={p.started} inspection={inspection} onInspect={onInspect}/>
     <Cast started={p.started} reduced={p.reduced} onInspect={onInspect}/>
     <mesh rotation={[-Math.PI/2,0,0]} position={[0,-.015,0]} receiveShadow>
       <planeGeometry args={[18.8,13.8]}/><MeshReflectorMaterial resolution={512} blur={[35,15]} mixBlur={.18} mixStrength={1.1} mirror={.85} minDepthThreshold={.4} maxDepthThreshold={1.4} depthScale={.3} color="#819da8" metalness={.3} roughness={.12}/>

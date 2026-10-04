@@ -14,6 +14,7 @@ export function aircon(b: ModelBuilder, at: V3, rotation = 0) {
     for (let i = 0; i < 6; i++) b.box([.31, -.21 + i * .075, .242], [.34, .025, .025], 'dark');
     b.box([-.5, -.4, 0], [.1, .16, .54]); b.box([.5, -.4, 0], [.1, .16, .54]);
     b.pipe([[.47, -.1, -.05], [.75, -.2, -.08], [.77, -.7, -.18]], .035, 'rust');
+    b.box([.77,-.7,-.18],[.14,.18,.12],'steel');
   });
 }
 function windowUnit(b: ModelBuilder, at: V3, rotation = 0, warm = true, width = 1.3, height = 1.5) {

@@ -43,11 +43,11 @@ export function streetMachines(b:ModelBuilder){
   b.with([-8.65,0,4.55],[0,.15,0],()=>{
     b.box([0,.1,0],[.5,.18,.48],'steel',[0,0,0],.035);
     b.cylinder([0,1.75,0],.055,.085,3.5,'steel');
-    const labels=['PROJECTS >','< ABOUT','CONTACT >'];
+    const labels=['PROJECTS >','< ABOUT','GAMES >'];
     for(let i=0;i<3;i++){
       const y=1.28+i*.48;
       b.profile([[-.58,y-.17],[.45,y-.17],[.64,y],[.45,y+.17],[-.58,y+.17]],.12,[0,0,.05],'dark');
-      b.sign(labels[i],[0,y,.12],[1.04,.26],[C.pink,C.cyan,C.amber][i],{border:false});
+      b.sign(labels[i],[0,y,.16],[1.04,.26],[C.pink,C.cyan,C.amber][i],{border:false});
     }
     b.box([0,3.12,0],[.57,.7,.28],'dark',[0,0,0],.04);
     b.sign('WALK',[0,3.1,.155],[.46,.52],C.cyan,{sub:'07',border:false});

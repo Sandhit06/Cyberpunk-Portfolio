@@ -19,7 +19,7 @@ export default function App() {
   useEffect(() => { const media = matchMedia('(prefers-reduced-motion: reduce)'); const update = () => setReduced(media.matches); media.addEventListener('change', update); return () => media.removeEventListener('change', update); }, []);
   useEffect(() => { if (!started) return; const show = setTimeout(() => setHint(true), reduced ? 400 : 4300); const hide = setTimeout(() => setHint(false), 10500); return () => { clearTimeout(show); clearTimeout(hide); }; }, [started, reduced]);
   return <main className={started ? 'experience entered' : 'experience'}>
-    <div className="world" role="img" aria-label="An orbitable three-dimensional cyberpunk restaurant, hotel, and netrunner workshop at night. Drag to rotate, scroll or pinch to zoom. Arrow keys orbit; plus and minus zoom; R resets the view.">
+    <div className="world" role="region" aria-label="An orbitable three-dimensional cyberpunk restaurant, hotel, and netrunner workshop at night. Drag to rotate, scroll or pinch to zoom. Arrow keys orbit; plus and minus zoom; R resets the view.">
       <SceneBoundary onError={onError}><Suspense fallback={null}><Scene started={started} reduced={reduced} onProgress={onProgress} onReady={onReady} onError={onError}/></Suspense></SceneBoundary>
     </div>
     <div className={`entry-screen ${started && !error ? 'entry-screen-hidden' : ''}`} aria-hidden={started && !error}>
@@ -28,6 +28,6 @@ export default function App() {
         <p>Cooking Your Ramen… <span>{progress}%</span></p><div className="load-track" aria-hidden="true"><i style={{ transform: `scaleX(${progress / 100})` }}/></div>
       </div>}
     </div>
-    <p className={`gesture-hint ${hint ? 'visible' : ''}`} aria-hidden={!hint}>DRAG TO EXPLORE <span>·</span> SCROLL TO ZOOM</p>
+    <p className={`gesture-hint ${hint ? 'visible' : ''}`} aria-hidden={!hint}>DRAG TO EXPLORE <span>·</span> SCROLL TO ZOOM <span>·</span> CLICK TO DISCOVER</p>
   </main>;
 }
